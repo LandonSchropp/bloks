@@ -206,17 +206,18 @@ function LaneRename({ title, onDone }: { title: string; onDone: (next: string | 
   );
 }
 
-/** An agent's conversations, under its row. Only agents with more than
- * one get them: a single conversation is the agent. Titles line up with
- * the agent's name above, and the state mark sits in the gutter left of
- * them, under the avatar. */
+/** An agent's conversations other than General, under its row. Titles
+ * line up with the agent's name above, and the state mark sits in the
+ * gutter left of them, under the avatar. */
 export function ConversationRows({ bot, open }: { bot: Bot; open: boolean }) {
   const { state, dispatch } = useStore();
   const [menu, setMenu] = useState<LaneMenuState | null>(null);
   const [renaming, setRenaming] = useState<string | null>(null);
-  const lanes = bot.tasks ?? [];
-  const showing = open && lanes.length > 1;
+
+  const lanes = (bot.tasks ?? []).slice(1);
+  const showing = open && lanes.length > 0;
   const activeId = state.selectedId === bot.id ? (bot.activeTaskId ?? bot.threadId) : null;
+
   return (
     <>
       <AnimatePresence initial={false}>
