@@ -185,6 +185,9 @@ function BotContextMenu({
   }, [onClose]);
 
   if (!bot) return null;
+
+  const general = bot.tasks?.[0];
+
   // keep the menu on-screen near the click
   const top = Math.min(menu.y, window.innerHeight - 300);
   const left = Math.min(menu.x, window.innerWidth - 220);
@@ -230,8 +233,11 @@ function BotContextMenu({
           bot.pinned ? "Unpin" : "Pin",
           () => dispatch({ type: "updateBot", botId: bot.id, patch: { pinned: !bot.pinned } }),
         ),
-        item(<BellDot size={15} className="text-muted-foreground" />, "Mark as unread", () =>
-          dispatch({ type: "markUnread", botId: bot.id }),
+        // the agent stands for General, so that is the conversation it marks
+        item(
+          <BellDot size={15} className="text-muted-foreground" />,
+          "Mark as unread",
+          () => general && dispatch({ type: "markLaneUnread", botId: bot.id, taskId: general.id }),
         ),
         item(<Folder size={15} className="text-muted-foreground" />, "Move to section…", () =>
           onFile({ kind: "bot", id: bot.id, name: bot.name, current: bot.section ?? null }),
@@ -304,8 +310,6 @@ function BotListItem({
     const general = bot.tasks?.[0];
     const generalOpen = selected && (bot.activeTaskId ?? bot.threadId) === general?.id;
     const timestamp = general ? (general.lastAt ?? general.createdAt) : 0;
-    // "Mark as unread" on the agent flags no conversation, so it shows here too
-    const unread = general?.unread || (bot.unread && !bot.tasks?.some(({ unread }) => unread));
 
     return (
       <div className="group/agent relative">
@@ -342,7 +346,7 @@ function BotListItem({
                 <span className="text-[11px] tabular-nums text-muted-foreground/80">{formatWhen(timestamp)}</span>
               )
             )}
-            {unread && <span className="size-1.5 rounded-full bg-brand" />}
+            {general?.unread && <span className="size-1.5 rounded-full bg-brand" />}
           </span>
         </button>
         {/* a new conversation, from the agent it is with */}
